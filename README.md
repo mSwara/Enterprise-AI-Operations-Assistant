@@ -13,38 +13,7 @@ This is not a single LLM prompt wearing different hats — it's a graph of indep
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    User([User]) --> UI[Streamlit Frontend]
-    UI --> API[FastAPI Backend]
-    API --> Supervisor{Supervisor Agent}
-
-    Supervisor -->|customer / order lookup| Customer[Customer Agent]
-    Supervisor -->|analytical question| SQL[SQL / Data Agent]
-    Supervisor -->|policy / FAQ question| Knowledge[Knowledge / RAG Agent]
-
-    Customer --> Tools1[(Customer & Order Tools)]
-    SQL --> Tools2[(Safe SQL Execution)]
-    Knowledge --> Tools3[(Vector Store — Chroma)]
-
-    Customer --> Critic{Critic / Validation}
-    SQL --> Critic
-    Knowledge --> Critic
-
-    Critic -->|unsupported / failed| Supervisor
-    Critic -->|needs action| Action[Action Agent]
-    Critic -->|passed, no action needed| Response[Final Response]
-
-    Action -->|sensitive action| HITL{{Human Approval}}
-    Action -->|routine action| ActionTools[(Ticket / Email Tools)]
-    HITL -->|approved| ActionTools
-    HITL -->|rejected| Response
-    ActionTools --> Response
-
-    Response --> UI
-```
-
-**How to read this:** the Supervisor doesn't answer questions itself — it routes to whichever agent(s) the request actually needs, sometimes more than one. Every agent's output passes through the Critic before it's allowed back to the user; if the Critic finds the answer isn't backed by what the tools actually returned, the request goes back for another pass instead of returning an unsupported claim. Sensitive actions (refunds, emails, ticket creation above a threshold) pause the graph entirely and wait for a human decision before continuing.
+The Supervisor doesn't answer questions itself — it routes each request to whichever agent(s) actually have the right tools for it, sometimes more than one. Every agent's output passes through the Critic before it's allowed back to the user; if the Critic finds the answer isn't backed by what the tools actually returned, the request goes back for another pass instead of returning an unsupported claim. Sensitive actions (refunds, emails, ticket creation above a threshold) pause the graph entirely and wait for a human decision before continuing.
 
 ## Agents
 
